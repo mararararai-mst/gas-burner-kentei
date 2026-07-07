@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ガスバーナー教習所</title>
+<meta name="description" content="学科（粒子で見る炎のしくみ）→技能（点火・消火検定）→路上教習（理科室は事件だらけ）→卒業検定。中1理科、本物のガスバーナーを使う前の教習所アプリ。">
+<meta property="og:title" content="🔥 ガスバーナー教習所">
+<meta property="og:description" content="学科・技能・路上・卒検。全部そろった本格教習。卒業免許証を先生に見せて、本物のバーナーへ。">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDGothic:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    font-family: 'BIZ UDGothic', sans-serif;
+    background-color: #fff8f0; color: #333; line-height: 1.6; margin: 0; padding: 15px;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #app-container {
+    margin: 0 auto; background: white; padding: 20px; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 2px solid #d0d0d0; transition: all 0.3s;
+    position: relative; max-width: 600px;
+  }
+  h1 { font-size: 21px; border-bottom: 3px solid #d84315; padding-bottom: 10px; margin-top: 0; display: flex; align-items: baseline; justify-content: space-between;}
+  .version-badge { font-size: 12px; color: #666; font-weight: normal; background: #eee; padding: 2px 8px; border-radius: 12px; }
+  button { touch-action: manipulation; }
+
+  /* メニュー */
+  .stage-label{font-size:13px;font-weight:bold;color:#888;margin:14px 0 6px;border-left:4px solid #d84315;padding-left:8px;}
+  .menu-btn { display: block; width: 100%; padding: 14px 16px; margin-bottom: 10px; font-size: 16px; font-weight: bold; font-family: inherit; border-radius: 10px; border: none; cursor: pointer; color: white; transition: 0.2s; text-align:left; position:relative;}
+  .menu-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+  .menu-btn .stamp{position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(-12deg);font-size:13px;background:#fff;color:#d32f2f;border:2px solid #d32f2f;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:bold;}
+  .menu-btn.locked{filter:grayscale(1) opacity(.55);}
+  #btn-gakka { background: #00897b; }
+  #btn-parts { background: #9c27b0; }
+  #btn-mode1 { background: #d84315; }
+  #btn-mode2 { background: #ff8c00; }
+  #btn-rojo { background: #3949ab; }
+  #btn-sotsu { background: linear-gradient(135deg,#b8860b,#daa520); }
+  #btn-tutorial { background: #4caf50; }
+  #btn-mode3 { background: #555555; }
+  .hidden { display: none !important; opacity: 0; pointer-events: none; }
+
+  #timer-board { font-size: 22px; color: #d32f2f; font-weight: bold; margin-bottom: 10px; background: #ffebee; padding: 8px; border-radius: 8px; border: 2px solid #ef5350; text-align: center;}
+
+  #status-board { background: #333; color: #fff; padding: 8px 14px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; border-left: 8px solid #ff8c00; transition: 0.3s; font-size: 13px; min-height: 88px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; text-align: left; line-height: 1.45; overflow: hidden; white-space: pre-line;}
+  .alert { border-left-color: #d32f2f !important; background: #fff5e6 !important; color: #d32f2f !important; }
+  .success { border-left-color: #2e7d32 !important; background: #e8f5e9 !important; color: #2e7d32 !important; }
+  .warning { border-left-color: #ffeb3b !important; background: #fffde7 !important; color: #f57f17 !important; }
+
+  #view-area { width: 100%; background: #f5f5f5; border-radius: 10px; position: relative; overflow: hidden; margin-bottom: 15px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; transition: all 0.3s; height: 340px;}
+  .burner-mount{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+  svg.burner{height:100%;max-width:100%;}
+
+  .control-group { margin-bottom: 10px; padding: 12px; background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; text-align: left; font-size: 14px;}
+  .btn-box { display: flex; flex-wrap: wrap; gap: 8px; }
+  button.op-btn { flex: 1; min-width: 45px; padding: 10px 5px; border-radius: 6px; border: none; font-weight: bold; font-family: inherit; cursor: pointer; background: #eee; color: #333; border-bottom: 4px solid #ccc; transition: 0.1s; font-size:14px;}
+  button.op-btn:active { border-bottom: 0; transform: translateY(4px); }
+  button:disabled { background: #e0e0e0 !important; border-bottom-color: #ccc !important; color: #999 !important; cursor: not-allowed; transform: none !important; animation: none !important;}
+  button.danger { background: #ff8c00; color: white; border-bottom-color: #cc7000; }
+  button.action { background: #005bac; color: white; border-bottom-color: #00407a; }
+  button.fire { background: #d84315; color: white; border-bottom-color: #a4300e; }
+
+  .gauge-row{display:flex;gap:10px;margin-bottom:10px;}
+  .gauge{flex:1;background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 10px;}
+  .gauge strong{font-size:12px;display:block;}
+  .gauge .bar{height:10px;background:#eee;border-radius:5px;overflow:hidden;margin-top:3px;}
+  .gauge .bar i{display:block;height:100%;width:0;transition:width .15s;}
+  #g-gas-bar i{background:linear-gradient(90deg,#ffb74d,#ff8c00);}
+  #g-air-bar i{background:linear-gradient(90deg,#90caf9,#1976d2);}
+  .gauge .pct{float:right;font-size:13px;font-weight:bold;}
+
+  .rescue-box { text-align: left; background: #fff5e6; border-left: 5px solid #ff8c00; padding: 15px; margin-bottom: 15px; }
+
+  /* 学科教習 */
+  #gakka-canvas-wrap{width:100%;background:#263238;border-radius:10px;border:2px solid #90a4ae;display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;}
+  #gakka-canvas{display:block;max-width:100%;height:auto;}
+  #gakka-qbox{background:#e0f2f1;border-left:5px solid #00897b;padding:12px;border-radius:8px;margin-bottom:10px;font-size:15px;font-weight:bold;line-height:1.6;min-height:64px;}
+  .yosou-btns{display:flex;gap:8px;margin-bottom:10px;}
+  .yosou-btns button{flex:1;padding:12px;border-radius:8px;border:none;border-bottom:4px solid #00695c;background:#00897b;color:#fff;font-family:inherit;font-size:15px;font-weight:bold;cursor:pointer;}
+  .gakka-slider{margin-bottom:6px;font-size:13px;font-weight:bold;}
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 22px; width: 22px; border-radius: 50%; background: #00897b; cursor: pointer; margin-top: -7px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);}
+  input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #ccc; border-radius: 4px; }
+  #gakka-meter{display:flex;gap:8px;margin:8px 0;}
+  #gakka-meter .m{flex:1;background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:bold;text-align:center;}
+  #gakka-meter .m span{display:block;font-size:16px;}
+
+  /* 路上教習・事件 */
+  #jiken-flash{background:#b71c1c;color:#fff;text-align:center;font-size:22px;font-weight:bold;padding:10px;border-radius:8px;margin-bottom:10px;animation:jflash .5s 3;}
+  @keyframes jflash{50%{background:#ff5252;}}
+  #jiken-text{background:#f5f5f5;padding:16px;border-radius:8px;font-size:16px;font-weight:bold;line-height:1.7;margin-bottom:10px;border:2px solid #b71c1c;}
+  .jiken-choices button{display:block;width:100%;padding:13px;margin-bottom:8px;border-radius:8px;border:none;border-bottom:4px solid #283593;background:#3949ab;color:#fff;font-family:inherit;font-size:15px;font-weight:bold;cursor:pointer;text-align:left;}
+  .jiken-choices button.right{background:#2e7d32;border-bottom-color:#1b5e20;}
+  .jiken-choices button.wrong{background:#c62828;border-bottom-color:#8e0000;}
+  .jtimer{height:12px;background:#eee;border-radius:6px;overflow:hidden;margin-bottom:10px;}
+  .jtimer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff5252,#b71c1c);}
+  .jtimer.run i{animation:jt linear forwards;}
+  @keyframes jt{from{width:100%}to{width:0}}
+  #jiken-kaisetsu{background:#fffde7;border-left:5px solid #f9a825;padding:12px;border-radius:8px;font-size:14px;line-height:1.7;margin-bottom:10px;}
+  .jikenbo{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+  .jikenbo .jb{background:#eceff1;border:2px solid #b0bec5;border-radius:8px;padding:6px 4px;font-size:10px;text-align:center;font-weight:bold;color:#90a4ad;}
+  .jikenbo .jb.get{background:#e8eaf6;border-color:#3949ab;color:#283593;}
+  .jikenbo .jb .n{font-size:16px;display:block;}
+
+  /* 事件割り込みオーバーレイ（卒検用） */
+  #incident-ov{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:none;align-items:center;justify-content:center;padding:16px;}
+  #incident-ov.on{display:flex;}
+  #incident-panel{background:#fff;border-radius:14px;padding:20px;max-width:460px;width:100%;box-shadow:0 15px 50px rgba(0,0,0,.4);}
+
+  /* 認定証・免許証 */
+  #license-screen { text-align: center; position: relative; overflow: hidden; padding: 20px 0;}
+  .license-title { font-size: 28px; font-weight: bold; background: linear-gradient(45deg, #FF1493, #3f51b5, #00bcd4, #4caf50, #ff9800); -webkit-background-clip: text; background-clip: text; color: transparent; animation: rainbow 3s infinite linear; margin-top:0;}
+  .license-card { width: 90%; margin: 0 auto; border-radius: 15px; padding: 25px; text-align: left; position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-size: 16px; box-sizing:border-box;}
+  .license-card::before { content: "🔥"; position: absolute; top: 15px; right: 20px; font-size: 40px; opacity: 0.8; }
+  .card-bronze { background: linear-gradient(135deg, #eceff1, #cfd8dc); border: 3px solid #b0bec5; }
+  .card-silver { background: linear-gradient(135deg, #ffffff, #e0e0e0); border: 3px solid #9e9e9e;}
+  .card-gold { background: linear-gradient(135deg, #fffde7, #fff59d, #ffd54f, #fffde7); background-size: 200% 200%; border: 4px solid #fbc02d; animation: shine 3s infinite linear;}
+  @keyframes shine { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+  @keyframes rainbow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+  .confetti { position: absolute; font-size: 24px; animation: fall 3s infinite linear; z-index: 1;}
+  @keyframes fall { 0% { transform: translateY(-50px) rotate(0deg); opacity: 1;} 100% { transform: translateY(150vh) rotate(360deg); opacity: 0;} }
+
+  /* 卒業免許証（公文書風・白黒印刷対応） */
+  #grad-license{background:#fff;border:4px double #333;border-radius:10px;padding:20px;width:92%;margin:0 auto;text-align:left;font-size:14px;position:relative;z-index:10;box-sizing:border-box;}
+  #grad-license h3{margin:0 0 8px;text-align:center;font-size:20px;letter-spacing:6px;border-bottom:2px solid #333;padding-bottom:6px;}
+  #grad-license table{width:100%;border-collapse:collapse;font-size:13px;}
+  #grad-license td{border:1px solid #999;padding:5px 8px;}
+  #grad-license td.h{background:#f0f0f0;font-weight:bold;width:88px;white-space:nowrap;}
+  #grad-photo{position:absolute;right:18px;top:52px;width:64px;height:80px;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:34px;background:#fafafa;}
+  .grad-footer{font-size:12px;margin-top:8px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .inkan{border:2px solid #d32f2f;color:#d32f2f;border-radius:50%;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;transform:rotate(-8deg);}
+
+  .version-footer { text-align: right; font-size: 11px; color: #999; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 5px; }
+  .hot-label{font-size:12px;fill:#555;font-weight:bold;font-family:inherit;}
+  .kyokan{font-size:13px;background:#fbe9e7;border-left:4px solid #bf360c;padding:8px 12px;border-radius:6px;margin-bottom:10px;font-weight:bold;}
+
+  /* パーツ名称テスト */
+  #parts-qbox{background:#f5f5f5;padding:12px;border-radius:8px;margin-bottom:12px;font-size:16px;font-weight:bold;text-align:center;}
+  .parts-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .parts-choices button{padding:14px 8px;border-radius:8px;border:none;border-bottom:4px solid #ccc;background:#eee;font-family:inherit;font-size:15px;font-weight:bold;cursor:pointer;}
+  .parts-choices button.right{background:#4caf50;color:#fff;border-bottom-color:#2e7d32;}
+  .parts-choices button.wrong{background:#d32f2f;color:#fff;border-bottom-color:#9a0007;}
+  .hlring{fill:none;stroke:#ff1493;stroke-width:4;stroke-dasharray:9 7;animation:hlspin 6s linear infinite,hlpulse 1.1s ease-in-out infinite;}
+  @keyframes hlspin{to{stroke-dashoffset:-220}}
+  @keyframes hlpulse{50%{stroke-width:7;opacity:.55}}
+
+  /* 印刷：卒業免許証だけを白黒で */
+  @media print{
+    body *{visibility:hidden;}
+    #license-screen, #license-screen *{visibility:visible;}
+    #license-screen{position:absolute;left:0;top:0;width:100%;}
+    .confetti,#confetti-container,.license-title,#license-screen .menu-btn,#print-btn{display:none !important;}
+    #grad-license{border:4px double #000;box-shadow:none;width:100%;}
+    .inkan{-webkit-print-color-adjust:exact;}
+  }
+
+  /* レスポンシブ */
+  .simulator-layout { display: flex; flex-direction: column; gap: 15px; }
+  .simulator-layout > .left-col, .simulator-layout > .right-col { width: 100%; }
+  @media (min-width: 768px) and (orientation: portrait) {
+    #app-container { max-width: 720px; padding: 30px; }
+    h1 { font-size: 26px; }
+    #view-area { height: 440px; }
+  }
+  @media (min-width: 768px) and (orientation: landscape) and (min-height: 501px) {
+    #app-container { max-width: 1000px; padding: 25px; }
+    .simulator-layout { flex-direction: row; align-items: stretch; }
+    .simulator-layout > .left-col { flex: 1.2; min-width: 0; }
+    .simulator-layout > .right-col { flex: 1; min-width: 320px; display: flex; flex-direction: column; overflow-y: auto; max-height: 560px; padding-right: 10px; }
+    #view-area { margin-bottom: 0; height: 100%; min-height: 440px; }
+    h1 { font-size: 24px; }
+  }
+  @media (orientation: landscape) and (max-height: 500px) {
+    body { padding: 5px; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+    #app-container { max-width: 100% !important; padding: 10px; }
+    .simulator-layout { flex-direction: row; align-items: stretch; gap: 10px;}
+    .simulator-layout > .left-col { flex: 1; min-width: 0; }
+    .simulator-layout > .right-col { flex: 1; min-width: 280px; display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 90px); padding-right: 5px; }
+    h1 { font-size: 16px; margin-bottom: 5px; padding-bottom: 5px;}
+    #status-board { padding: 4px 10px; font-size: 11px; margin-bottom: 8px; min-height: 62px;}
+    #view-area { height: calc(100vh - 100px); min-height: 220px; margin-bottom: 0;}
+    .control-group { padding: 8px; margin-bottom: 8px;}
+    button.op-btn { padding: 6px 4px; font-size: 12px; }
+    .btn-box { gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app-container">
+  <h1><span>🔥 ガスバーナー教習所</span> <span class="version-badge">v2.0</span></h1>
+
+  <!-- ============ メニュー ============ -->
+  <div id="menu-screen">
+    <div class="stage-label">はじめに</div>
+    <button class="menu-btn" id="btn-tutorial" onclick="showScreen('tutorial-screen')">🔰 入所ガイダンス（絶対ルール）</button>
+    <div class="stage-label">第1段階（学科）</div>
+    <button class="menu-btn" id="btn-gakka" onclick="startGakka()">📖 学科教習「炎のしくみ」（粒子で見る）</button>
+    <button class="menu-btn" id="btn-parts" onclick="startParts()">📝 学科試験（パーツ名称＋手順ならべかえ）</button>
+    <div class="stage-label">第2段階（技能）</div>
+    <button class="menu-btn" id="btn-mode1" onclick="startMode(1)">🔰 技能教習Ⅰ 点火検定 / 青い炎をつくれ</button>
+    <button class="menu-btn" id="btn-mode2" onclick="startMode(2)">⏱️ 技能教習Ⅱ タイムアタック / 点火〜消火</button>
+    <div class="stage-label">第3段階（路上）</div>
+    <button class="menu-btn" id="btn-rojo" onclick="startRojo()">🛣️ 路上教習「理科室は事件だらけ」</button>
+    <div class="stage-label">卒業</div>
+    <button class="menu-btn" id="btn-sotsu" onclick="startSotsu()">🎓 卒業検定（ノーヒント通し＋抜き打ち事件）</button>
+    <div class="stage-label">こまったとき</div>
+    <button class="menu-btn" id="btn-mode3" onclick="showScreen('rescue-screen')">🆘 トラブル逆引きガイド</button>
+    <p style="text-align:right;"><button onclick="resetProgress()" style="font-family:inherit;font-size:11px;color:#999;background:none;border:none;cursor:pointer;text-decoration:underline;">教習記録をリセット</button></p>
+  </div>
+
+  <!-- ============ ガイダンス ============ -->
+  <div id="tutorial-screen" class="hidden">
+    <h2 style="color: #4caf50;">🔰 ガスバーナーの絶対ルール</h2>
+    <div class="rescue-box" style="border-color:#4caf50;">
+      <h3 style="margin-top:0; color:#2e7d32;">① 点火の手順（この順番だけ）</h3>
+      <p>1. <strong>2つのねじが閉まっているか</strong>確認する<br>
+      2. <strong>元栓</strong>を開く<br>
+      3. <strong>マッチに火をつけてから</strong>、ガス調節ねじを少しずつ開いて点火<br>
+      4. <strong>ガス調節ねじ（下）</strong>で炎の大きさを調節（10cmくらい）<br>
+      5. <strong>空気調節ねじ（上）</strong>を開いて<strong>青い炎</strong>にする</p>
+    </div>
+    <div class="rescue-box" style="border-color:#4caf50;">
+      <h3 style="margin-top:0; color:#2e7d32;">② 消火は「逆の順番」</h3>
+      <p><strong>空気調節ねじ → ガス調節ねじ → 元栓</strong> の順に閉じる。</p>
+    </div>
+    <div class="rescue-box" style="border-color:#d32f2f;">
+      <h3 style="margin-top:0; color:#d32f2f;">🚫 一発免停（危険操作）</h3>
+      <p>・マッチの火を用意する前にガスを開ける（ガスが充満！）<br>
+      ・ガスが出ている中でマッチをつける（引火！）<br>
+      ・ねじが開いたまま元栓を開ける（ガス噴出！）<br>
+      ・空気を入れすぎる（<strong>逆火</strong>＝炎がバーナー内に逆流！）<br>
+      ・火がついたまま元栓から閉じる／順番を無視した消火</p>
+    </div>
+    <div class="kyokan">👹 火野教官「卒業検定に受かれば、本物のバーナーに乗せてやる。順に進め。」</div>
+    <button class="menu-btn" style="background:#555; margin-top:10px;" onclick="location.reload()">トップに戻る</button>
+  </div>
+
+  <!-- ============ 学科教習 ============ -->
+  <div id="gakka-screen" class="hidden">
+    <h2 style="color:#00897b; margin-top:0;">📖 学科教習「炎のしくみ」</h2>
+    <div id="gakka-qbox">…</div>
+    <div class="yosou-btns hidden" id="gakka-yosou">
+      <button id="gakka-y0" onclick="gakkaYosou(0)"></button>
+      <button id="gakka-y1" onclick="gakkaYosou(1)"></button>
+    </div>
+    <div id="gakka-canvas-wrap"><canvas id="gakka-canvas" width="340" height="300"></canvas></div>
+    <div id="gakka-meter">
+      <div class="m">混合のようす<span id="gm-mix">—</span></div>
+      <div class="m">炎の温度（めやす）<span id="gm-temp">—</span></div>
+    </div>
+    <div class="gakka-slider">🟠 ガス調節ねじ（ガスの量）: <span id="gs-gas-v">0</span>%
+      <input type="range" id="gs-gas" min="0" max="100" value="0" oninput="gakkaInput()"></div>
+    <div class="gakka-slider">🔵 空気調節ねじ（空気の量）: <span id="gs-air-v">0</span>%
+      <input type="range" id="gs-air" min="0" max="100" value="0" oninput="gakkaInput()"></div>
+    <button class="menu-btn hidden" id="gakka-next" style="background:#00897b;" onclick="gakkaNext()">つぎへ ▶</button>
+    <button class="menu-btn" style="background:#555;" onclick="location.reload()">トップに戻る</button>
+  </div>
+
+  <!-- ============ 学科試験（パーツ） ============ -->
+  <div id="parts-screen" class="hidden">
+    <h2 style="color:#9c27b0;">📝 学科試験（パーツ名称）</h2>
+    <div id="parts-qbox">問題</div>
+    <div style="width:100%;height:300px;background:#f5f5f5;border:2px solid #ccc;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;overflow:hidden;">
+      <div class="burner-mount" id="parts-mount"></div>
+    </div>
+    <div class="parts-choices" id="parts-choices"></div>
+    <div id="parts-result" class="hidden" style="text-align:center;margin-top:15px;">
+      <p id="parts-result-text" style="font-size:18px;font-weight:bold;"></p>
+      <button class="menu-btn" style="background:#9c27b0;" onclick="startParts()">もう一度挑戦</button>
+      <button class="menu-btn" style="background:#555;" onclick="location.reload()">トップに戻る</button>
+    </div>
+  </div>
+
+  <!-- ============ クイズゲート ============ -->
+  <div id="quiz-screen" class="hidden">
+    <h2>📝 教習前リマインド・クイズ</h2>
+    <div style="background:#f5f5f5; padding:20px; border-radius:8px; margin-bottom:20px;">
+      <p id="quiz-text" style="font-size:18px; font-weight:bold; line-height: 1.8;"></p>
+    </div>
+    <button class="menu-btn" id="quiz-ans0" style="background:#005bac;" onclick="answerQuiz(0)"></button>
+    <button class="menu-btn" id="quiz-ans1" style="background:#555;" onclick="answerQuiz(1)"></button>
+  </div>
+
+  <!-- ============ 路上教習 ============ -->
+  <div id="rojo-screen" class="hidden">
+    <h2 style="color:#3949ab;margin-top:0;">🛣️ 路上教習「理科室は事件だらけ」</h2>
+    <div class="jikenbo" id="jikenbo"></div>
+    <div id="jiken-flash" class="hidden">⚠️ 事件発生！</div>
+    <div class="jtimer hidden" id="jiken-timer"><i></i></div>
+    <div id="jiken-text"></div>
+    <div class="jiken-choices" id="jiken-choices"></div>
+    <div id="jiken-kaisetsu" class="hidden"></div>
+    <button class="menu-btn hidden" id="jiken-next" style="background:#3949ab;" onclick="nextJiken()">つぎの事件へ ▶</button>
+    <div id="rojo-result" class="hidden" style="text-align:center;">
+      <p id="rojo-result-text" style="font-size:17px;font-weight:bold;"></p>
+      <button class="menu-btn" style="background:#555;" onclick="location.reload()">トップに戻る</button>
+    </div>
+    <button class="menu-btn" id="rojo-quit" style="background:#9e9e9e;" onclick="location.reload()">中断してトップに戻る</button>
+  </div>
+
+  <!-- ============ レスキュー ============ -->
+  <div id="rescue-screen" class="hidden">
+    <h2>🆘 トラブル逆引きガイド</h2>
+    <div class="rescue-box"><h3 style="margin-top:0; color:#d32f2f;">❓ 火がつかない</h3>
+      <p>① 元栓（とコック）は開いているか。<br>② マッチの火を<strong>先に</strong>用意してから、ガス調節ねじを少しずつ開く。</p></div>
+    <div class="rescue-box"><h3 style="margin-top:0; color:#d32f2f;">❓ 炎がオレンジ色でゆらゆらする</h3>
+      <p>空気が足りない（すすも出る）。<strong>空気調節ねじ（上）</strong>を少しずつ開いて青い炎に。</p></div>
+    <div class="rescue-box"><h3 style="margin-top:0; color:#d32f2f;">❓ ゴーッと音がして炎が筒の中で燃える（逆火）</h3>
+      <p>空気の入れすぎ。<strong>すぐ元栓を閉じてガスを断つ</strong>。冷えてからやり直す。</p></div>
+    <div class="rescue-box"><h3 style="margin-top:0; color:#d32f2f;">❓ ガスのにおいがする</h3>
+      <p>すぐ<strong>元栓を閉めて</strong>窓を開けて換気。先生を呼ぶ。火は絶対つけない！</p></div>
+    <button class="menu-btn" style="background:#9e9e9e;" onclick="location.reload()">トップに戻る</button>
+  </div>
+
+  <!-- ============ 認定証・免許証 ============ -->
+  <div id="license-screen" class="hidden">
+    <div id="confetti-container"></div>
+    <h2 class="license-title" id="license-h2">🎉 操作技能 認定！ 🎉</h2>
+    <div id="license-card" class="license-card card-bronze">
+      <h3 style="margin-top:0; border-bottom: 2px solid #333; padding-bottom:5px; font-size:20px;">ガスバーナー操作 認定証</h3>
+      <p><strong>氏名：</strong> <span id="license-name" onclick="editName()" style="border-bottom:1px dashed #999; cursor:pointer;">未来の科学者</span> 殿 <span style="font-size:11px;color:#888;">(タップで変更)</span></p>
+      <p><strong>ランク：</strong> <span id="license-rank" style="font-size:26px; font-weight:bold; color:#a0a0a0;">ブロンズ認定</span> <span id="crown-icon">🥉</span></p>
+      <p id="license-time-wrap" style="font-size:18px;"><strong>クリアタイム：</strong> <span id="license-time" style="font-size:22px; color:#d32f2f; font-weight:bold;">-</span> 秒</p>
+      <p style="font-size:13px; color:#555; margin-top:15px; border-top: 1px dashed #999; padding-top:10px;">上記のとおり、安全かつ正確なガスバーナー操作の技能を有することを証明する。</p>
+    </div>
+
+    <!-- 卒業免許証（公文書風） -->
+    <div id="grad-license" class="hidden">
+      <h3>ガスバーナー免許証</h3>
+      <div id="grad-photo">🔥</div>
+      <table>
+        <tr><td class="h">氏名</td><td><span id="grad-name" onclick="editName()" style="cursor:pointer;border-bottom:1px dashed #999;">未来の科学者</span></td></tr>
+        <tr><td class="h">交付日</td><td id="grad-date">—</td></tr>
+        <tr><td class="h">番号</td><td id="grad-no">—</td></tr>
+        <tr><td class="h">種類</td><td>普通ガスバーナー（実験用）</td></tr>
+        <tr><td class="h">条件等</td><td><strong>保護眼鏡・換気に限る</strong></td></tr>
+        <tr><td class="h">検定タイム</td><td><span id="grad-time">—</span> 秒（事件対応 1件含む）</td></tr>
+        <tr><td class="h">有効期限</td><td>中学校卒業まで有効</td></tr>
+      </table>
+      <div class="grad-footer">
+        <span>上記の者に、<strong>本物のガスバーナーでの実技</strong>に進むことを許可する。<br>ガスバーナー教習所長　火野</span>
+        <span class="inkan">火野<br>之印</span>
+      </div>
+    </div>
+
+    <div class="kyokan hidden" id="license-kyokan" style="margin-top:14px;width:90%;margin-left:auto;margin-right:auto;text-align:left;"></div>
+    <button class="menu-btn hidden" id="print-btn" style="background:#005bac; margin-top:14px; position:relative; z-index:10;" onclick="window.print()">🖨 免許証を印刷して先生に見せる</button>
+    <button class="menu-btn" style="background:#555; margin-top:10px; position:relative; z-index:10;" onclick="location.reload()">トップに戻る</button>
+  </div>
+
+  <!-- ============ シミュレーター（技能・卒検） ============ -->
+  <div id="simulator-screen" class="hidden">
+    <div id="timer-board" class="hidden">⏱️ 残り時間：<span id="time-text">180</span>秒</div>
+    <div id="status-board">【点検】2つのねじが閉まっているか確認せよ。</div>
+    <div class="simulator-layout">
+      <div class="left-col">
+        <div id="view-area"><div class="burner-mount" id="sim-mount"></div></div>
+      </div>
+      <div class="right-col">
+        <div class="gauge-row">
+          <div class="gauge"><strong>ガス調節ねじ（下）<span class="pct" id="g-gas-pct">0%</span></strong><div class="bar" id="g-gas-bar"><i></i></div></div>
+          <div class="gauge"><strong>空気調節ねじ（上）<span class="pct" id="g-air-pct">0%</span></strong><div class="bar" id="g-air-bar"><i></i></div></div>
+        </div>
+        <div id="panel-prep" class="control-group">
+          <strong>🔧 点火前点検：</strong>
+          <div class="btn-box" style="margin:8px 0;">
+            <button class="op-btn" onclick="prepClose('gas')">ガス調節ねじを<br>回して確認</button>
+            <button class="op-btn" onclick="prepClose('air')">空気調節ねじを<br>回して確認</button>
+          </div>
+          <button class="op-btn danger" onclick="completePrep()" style="width:100%;">✅ 点検完了</button>
+        </div>
+        <div id="panel-main" class="control-group hidden">
+          <div class="btn-box" style="margin-bottom:10px;">
+            <button class="op-btn action" id="btn-motosen" onclick="toggleMotosen()">元栓を開く</button>
+            <button class="op-btn fire" id="btn-match" onclick="lightMatch()">🔥 マッチに火をつける</button>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <div style="flex:1;">
+              <strong style="font-size:12px;">ガス調節ねじ（下）:</strong>
+              <div class="btn-box">
+                <button class="op-btn action" id="btn-gas-open" onclick="adjGas(10)">開く ＋</button>
+                <button class="op-btn danger" id="btn-gas-close" onclick="adjGas(-10)">閉じる −</button>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <strong style="font-size:12px;">空気調節ねじ（上）:</strong>
+              <div class="btn-box">
+                <button class="op-btn action" id="btn-air-open" onclick="adjAir(10)">開く ＋</button>
+                <button class="op-btn danger" id="btn-air-close" onclick="adjAir(-10)">閉じる −</button>
+              </div>
+            </div>
+          </div>
+          <button class="op-btn action" id="btn-judge" onclick="judge()" style="width:100%; margin-top:12px; padding:15px; font-size:16px;">🏁 操作試験 終了</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="version-footer">Ver 2.0 / ガスバーナー教習所（学科・技能・路上・卒検）</div>
+</div>
+
+<!-- 卒検・抜き打ち事件オーバーレイ -->
+<div id="incident-ov">
+  <div id="incident-panel">
+    <div id="jiken-flash2" style="background:#b71c1c;color:#fff;text-align:center;font-size:20px;font-weight:bold;padding:8px;border-radius:8px;margin-bottom:10px;">⚠️ 事件発生！</div>
+    <div class="jtimer" id="inc-timer"><i></i></div>
+    <div id="inc-text" style="font-size:15px;font-weight:bold;line-height:1.7;margin-bottom:10px;"></div>
+    <div class="jiken-choices" id="inc-choices"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ガスバーナー教習所 v2.0
+   教科書（東京書籍 新編 新しい科学1 P.86）準拠
+   学科（粒子）→ 技能（検定）→ 路上（事件）→ 卒検（免許証）
+========================================================= */
+
+/* ---------- 教習記録 ---------- */
+const PKEY = "gasSchool_v2";
+let P = loadP();
+function loadP(){ try{ return JSON.parse(localStorage.getItem(PKEY)) || {} }catch(e){ return {} } }
+function saveP(){ localStorage.setItem(PKEY, JSON.stringify(P)); }
+function stamp(key){ P[key] = true; saveP(); }
+function resetProgress(){
+  if(confirm("教習記録（修了スタンプ）をすべて消します。よろしいですか？")){
+    localStorage.removeItem(PKEY); location.reload();
+  }
+}
+function decorateMenu(){
+  const map = { gakka:"btn-gakka", gakkaShiken:"btn-parts", ginou1:"btn-mode1", ginou2:"btn-mode2", rojo:"btn-rojo", sotsu:"btn-sotsu" };
+  for(const k in map){
+    if(P[k]){
+      const b = document.getElementById(map[k]);
+      if(b && !b.querySelector('.stamp')){
+        const s = document.createElement('span'); s.className = 'stamp'; s.innerText = "修了";
+        b.appendChild(s);
+      }
+    }
+  }
+  // 卒検ロック
+  const ready = P.gakkaShiken && P.ginou1 && P.ginou2 && P.rojo;
+  const sb = document.getElementById('btn-sotsu');
+  if(!ready && !P.sotsu){ sb.classList.add('locked'); sb.innerHTML = "🔒 卒業検定（学科試験・技能Ⅰ・Ⅱ・路上を修了せよ）"; }
+}
+
+/* ---------- 鬼教官・火野 ---------- */
+const KYOKAN = {
+  fail: ["本物なら今ごろ救急車だ。", "君はまだ火を扱う資格がない。出直せ。", "その指、あと3秒で焦げていたぞ。", "理科室が消し炭になるところだった。"],
+  pass: ["…悪くない。", "ふん、まぐれでないことを祈る。", "本物の火は、今日の君なら扱えるだろう。"],
+  inc_ok: ["いい判断だ。", "落ち着いていたな。", "その3秒が命を守る。"]
+};
+function kyokanSay(pool){ return "👹火野教官「" + pool[Math.floor(Math.random() * pool.length)] + "」"; }
+
+/* =========================================================
+   バーナーSVG（技能・卒検・学科試験 共用）
+========================================================= */
+function burnerSVG(){
+  return `
+<svg class="burner" viewBox="0 0 360 340" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gOr" cx="50%" cy="85%" r="75%">
+      <stop offset="0%" stop-color="#fff3b0"/><stop offset="45%" stop-color="#ffb74d"/>
+      <stop offset="100%" stop-color="#ff7043"/>
+    </radialGradient>
+    <radialGradient id="gBl" cx="50%" cy="85%" r="75%">
+      <stop offset="0%" stop-color="#e3f4ff"/><stop offset="40%" stop-color="#7ec3ff"/>
+      <stop offset="100%" stop-color="#3a7bd5"/>
+    </radialGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c9d2da"/><stop offset="45%" stop-color="#eef3f7"/>
+      <stop offset="100%" stop-color="#aeb8c2"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b7c0c9"/><stop offset="100%" stop-color="#7e8893"/>
+    </linearGradient>
+  </defs>
+  <g id="flame" style="opacity:0; transform-origin:180px 92px;"></g>
+  <rect x="166" y="90" width="28" height="98" rx="6" fill="url(#steel)" stroke="#9aa4ad" stroke-width="2"/>
+  <ellipse cx="180" cy="91" rx="14" ry="4" fill="#dfe6ec" stroke="#9aa4ad" stroke-width="2"/>
+  <g id="airRing">
+    <ellipse cx="180" cy="122" rx="26" ry="9" fill="#cfd7de" stroke="#1976d2" stroke-width="2.5"/>
+    <ellipse cx="180" cy="118" rx="26" ry="9" fill="#eef3f7" stroke="#1976d2" stroke-width="2.5"/>
+    <text id="svgAirPct" x="216" y="122" class="hot-label" fill="#1976d2">0%</text>
+  </g>
+  <g id="gasRing">
+    <ellipse cx="180" cy="160" rx="30" ry="10" fill="#cfd7de" stroke="#ff8c00" stroke-width="2.5"/>
+    <ellipse cx="180" cy="155" rx="30" ry="10" fill="#fff0dc" stroke="#ff8c00" stroke-width="2.5"/>
+    <text id="svgGasPct" x="220" y="160" class="hot-label" fill="#e65100">0%</text>
+  </g>
+  <path d="M130 172 L230 172 L252 205 L108 205 Z" fill="url(#base)" stroke="#6f7882" stroke-width="2"/>
+  <ellipse cx="180" cy="205" rx="72" ry="13" fill="url(#base)" stroke="#6f7882" stroke-width="2"/>
+  <ellipse cx="180" cy="200" rx="72" ry="13" fill="#cfd7de" stroke="#6f7882" stroke-width="2"/>
+  <path d="M250 198 q46 0 46 44 l0 36" fill="none" stroke="#b7c0c9" stroke-width="10" stroke-linecap="round"/>
+  <path d="M250 198 q40 0 40 40 l0 40" fill="none" stroke="#dfe6ec" stroke-width="4" stroke-linecap="round"/>
+  <g id="motosenG">
+    <circle cx="296" cy="290" r="20" fill="#fff" stroke="#9aa4ad" stroke-width="3"/>
+    <g id="motoLever" style="transform-origin:296px 290px; transition:transform .3s;">
+      <rect x="292" y="268" width="8" height="26" rx="4" fill="#d32f2f"/>
+      <circle cx="296" cy="290" r="6" fill="#333"/>
+    </g>
+    <text x="296" y="326" text-anchor="middle" class="hot-label plabel">元栓</text>
+  </g>
+  <g id="matchG">
+    <rect x="42" y="262" width="66" height="14" rx="7" fill="#fff" stroke="#e0a96d" stroke-width="2"/>
+    <rect x="46" y="264" width="42" height="10" rx="5" fill="#f0d8b8"/>
+    <circle cx="100" cy="269" r="8" fill="#b5651d"/>
+    <g id="matchFlame" style="opacity:0;">
+      <path d="M100 252 q8 9 0 17 q-8 -8 0 -17Z" fill="url(#gOr)"/>
+    </g>
+    <text x="72" y="296" text-anchor="middle" class="hot-label plabel">マッチ</text>
+  </g>
+  <text x="118" y="121" text-anchor="end" class="hot-label plabel" fill="#1976d2">空気調節ねじ（上）</text>
+  <line class="plabel" x1="121" y1="118" x2="152" y2="118" stroke="#1976d2" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="118" y="159" text-anchor="end" class="hot-label plabel" fill="#e65100">ガス調節ねじ（下）</text>
+  <line class="plabel" x1="121" y1="156" x2="148" y2="156" stroke="#ff8c00" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <g id="hl" style="pointer-events:none;"></g>
+</svg>`;
+}
+function mountBurner(containerId){
+  document.querySelectorAll('.burner-mount').forEach(m => m.innerHTML = '');
+  document.getElementById(containerId).innerHTML = burnerSVG();
+}
+
+/* =========================================================
+   シミュレーター核（技能Ⅰ=1 / 技能Ⅱ=2 / 卒検=4）
+========================================================= */
+let currentMode = 1;
+let gas = 0, air = 0;
+let motosen = false, matchLit = false, ignited = false;
+let airUnlocked = false, reachedBlue = false;
+let currentStep = 0, isGameOver = false;
+let timeLeft = 180, timerId = null;
+let incidentDone = false, incidentTimer = null;
+
+const quizzes = [
+  { q: "点火する前、最初に確認することは？", a: ["ガス調節ねじ・空気調節ねじが閉まっているか", "元栓が開いているか"], c: 0 },
+  { q: "ガス調節ねじを開くタイミングは？", a: ["マッチに火をつける前", "マッチに火をつけた後"], c: 1 },
+  { q: "炎を青色にするために回すのは？", a: ["空気調節ねじ（上）", "ガス調節ねじ（下）"], c: 0 },
+  { q: "火を消すとき、最初に閉じるのは？", a: ["ガス調節ねじ", "空気調節ねじ"], c: 1 },
+  { q: "炎の大きさを調節するのは？", a: ["ガス調節ねじ（下）", "空気調節ねじ（上）"], c: 0 }
+];
+
+function flameState(){
+  if(!ignited || !motosen || gas < 5) return "none";
+  if(air < 30) return "orange";
+  return "blue";
+}
+function gasInRange(){ return gas >= 40 && gas <= 80; }
+
+function render(){
+  const fs = flameState();
+  const g = document.getElementById('flame');
+  if(g){
+    if(fs === "none"){ g.style.opacity = 0; }
+    else{
+      g.style.opacity = 1;
+      const h = 25 + gas * 0.6, top = 90 - h;
+      const w = (fs === "blue") ? 13 : 19;
+      const grad = (fs === "blue") ? "url(#gBl)" : "url(#gOr)";
+      const inner = (fs === "blue")
+        ? `<path d="M180 90 Q${180-7} ${top+26} 180 ${top+14} Q${180+7} ${top+26} 180 90Z" fill="#cfeaff" opacity=".9"/>` : "";
+      g.innerHTML = `<path d="M180 90 Q${180-w} ${90-h*0.5} 180 ${top} Q${180+w} ${90-h*0.5} 180 90Z" fill="${grad}"/>${inner}`;
+    }
+  }
+  const ml = document.getElementById('motoLever');
+  if(ml) ml.style.transform = `rotate(${motosen ? 90 : 0}deg)`;
+  const mf = document.getElementById('matchFlame');
+  if(mf) mf.style.opacity = matchLit ? 1 : 0;
+  const sg = document.getElementById('svgGasPct'); if(sg) sg.textContent = gas + "%";
+  const sa = document.getElementById('svgAirPct'); if(sa) sa.textContent = air + "%";
+  document.getElementById('g-gas-pct').textContent = gas + "%";
+  document.getElementById('g-air-pct').textContent = air + "%";
+  document.querySelector('#g-gas-bar i').style.width = gas + "%";
+  document.querySelector('#g-air-bar i').style.width = air + "%";
+}
+
+function showScreen(id){
+  ['menu-screen','tutorial-screen','gakka-screen','parts-screen','quiz-screen','rescue-screen','license-screen','simulator-screen','rojo-screen']
+    .forEach(s => document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function startMode(mode){
+  currentMode = mode;
+  if(mode === 2){
+    const q = quizzes[Math.floor(Math.random() * quizzes.length)];
+    document.getElementById('quiz-text').innerText = "Q. " + q.q;
+    document.getElementById('quiz-ans0').innerText = q.a[0];
+    document.getElementById('quiz-ans1').innerText = q.a[1];
+    document.getElementById('quiz-screen').dataset.correct = q.c;
+    showScreen('quiz-screen');
+  } else {
+    enterSimulator();
+  }
+}
+function startSotsu(){
+  const ready = (P.gakkaShiken && P.ginou1 && P.ginou2 && P.rojo) || P.sotsu;
+  if(!ready){ alert("🔒 卒業検定は、学科試験・技能Ⅰ・技能Ⅱ・路上教習をすべて修了してから！"); return; }
+  currentMode = 4;
+  enterSimulator();
+  document.getElementById('timer-board').classList.remove('hidden');
+  startTimer();
+  scheduleIncident();
+}
+function answerQuiz(idx){
+  if(idx == document.getElementById('quiz-screen').dataset.correct){
+    alert("⭕ 大正解！タイムアタックを開始します！");
+    enterSimulator();
+    document.getElementById('timer-board').classList.remove('hidden');
+    startTimer();
+  } else {
+    alert("❌ 【不正解】基本を間違えています。やり直し！");
+    location.reload();
+  }
+}
+function enterSimulator(){
+  showScreen('simulator-screen');
+  mountBurner('sim-mount');
+  gas = 10 + Math.floor(Math.random() * 3) * 10;
+  air = 10 + Math.floor(Math.random() * 3) * 10;
+  render(); updateGameState();
+}
+function startTimer(){
+  if(timerId === null){
+    timerId = setInterval(() => {
+      timeLeft--;
+      document.getElementById('time-text').innerText = timeLeft;
+      if(timeLeft <= 0){ clearInterval(timerId); timerId = null; gameOver("❌ タイムアップ！不合格です。"); }
+    }, 1000);
+  }
+}
+function pauseTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
+
+function prepClose(which){
+  if(isGameOver) return;
+  if(which === 'gas') gas = 0; else air = 0;
+  render(); updateGameState();
+}
+function completePrep(){
+  if(gas > 0 || air > 0){ alert("⚠️ まだねじが開いている！2つとも閉まっているか確認！"); return; }
+  currentStep = 1;
+  document.getElementById('panel-prep').classList.add('hidden');
+  document.getElementById('panel-main').classList.remove('hidden');
+  updateGameState();
+}
+function toggleMotosen(){
+  if(isGameOver) return;
+  if(!motosen){
+    if(gas > 0 || air > 0){
+      gameOver("❌【一発免停】ねじが開いたまま元栓を開けた！ガスが噴き出した！点検を怠るな！"); return;
+    }
+    motosen = true;
+    if(currentStep === 1) currentStep = 2;
+  } else {
+    if(flameState() !== "none"){
+      gameOver("❌【一発免停】火がついたまま元栓から閉じた！消火は「空気→ガス→元栓」の順番だ！"); return;
+    }
+    motosen = false;
+    if((currentMode === 2 || currentMode === 4) && currentStep === 5 && air === 0 && gas === 0 && reachedBlue){
+      currentStep = 6;
+    }
+  }
+  render(); updateGameState();
+}
+function lightMatch(){
+  if(isGameOver) return;
+  if(!motosen){ alert("先に元栓を開けてください。"); return; }
+  if(gas > 0){
+    gameOver("❌【一発免停】ボッ！ガスが出ている中でマッチをつけた！漏れたガスに引火した！"); return;
+  }
+  matchLit = true;
+  render(); updateGameState();
+}
+function adjGas(v){
+  if(isGameOver || currentStep < 1) return;
+  const before = gas;
+  gas = Math.max(0, Math.min(100, gas + v));
+  if(!ignited && motosen && !matchLit && gas > 15){
+    render();
+    gameOver("❌【一発免停】シューッ…！マッチの火を用意する前にガスを開けた！理科室にガスが充満していく…！"); return;
+  }
+  if(!ignited && motosen && matchLit && gas >= 10){
+    ignited = true; matchLit = false; airUnlocked = true;
+    currentStep = 3;
+    igniteFlash();
+  }
+  if(ignited && before >= 5 && gas < 5){
+    ignited = false;
+    if(air > 0){
+      render();
+      gameOver("❌【一発免停】消火の順序違反！空気調節ねじを閉じる前にガスを閉じた。「空気→ガス→元栓」の順だ！"); return;
+    }
+    if(!((currentMode === 2 || currentMode === 4) && currentStep === 5)){
+      currentStep = 2;
+    }
+  }
+  render(); updateGameState();
+}
+function adjAir(v){
+  if(isGameOver || !airUnlocked) return;
+  air = Math.max(0, Math.min(100, air + v));
+  if(flameState() !== "none" && air > 85){
+    render();
+    gameOver("❌【一発免停】ボンッ！空気を入れすぎて炎がバーナーの中に逆流（逆火）した！超危険！"); return;
+  }
+  if(flameState() === "blue" && gasInRange()){
+    reachedBlue = true;
+    if(currentMode === 2 || currentMode === 4){ if(currentStep < 5) currentStep = 5; }
+    else if(currentStep < 4) currentStep = 4; // 再点火→再び青 でも正しくstep4へ
+  }
+  render(); updateGameState();
+}
+function igniteFlash(){
+  const g = document.getElementById('flame');
+  if(g) g.animate([{transform:'scale(0.2)',opacity:0},{transform:'scale(1.25)',opacity:1},{transform:'scale(1)',opacity:1}],{duration:350});
+}
+
+function msgBoard(txt){ document.getElementById('status-board').innerText = txt; }
+function boardClass(c){ document.getElementById('status-board').className = c; }
+
+function updateGameState(){
+  if(isGameOver) return;
+  const fs = flameState();
+  const btnMatch = document.getElementById('btn-match');
+  const btnMoto = document.getElementById('btn-motosen');
+  const airOpen = document.getElementById('btn-air-open');
+  const airClose = document.getElementById('btn-air-close');
+
+  btnMoto.innerText = motosen ? "元栓を閉じる" : "元栓を開く";
+  btnMatch.disabled = !(motosen && !matchLit && !ignited);
+  btnMatch.innerText = matchLit ? "🔥 マッチ点火中…" : "🔥 マッチに火をつける";
+  airOpen.disabled = !airUnlocked;
+  airClose.disabled = !airUnlocked;
+  airOpen.innerText = airUnlocked ? "開く ＋" : "🔒 開く ＋";
+
+  // ★卒業検定はノーヒント：手順の誘導を出さない（教習=誘導あり／検定=誘導なし）
+  if(currentMode === 4){
+    let sub = "";
+    if(currentStep === 6) sub = "\n（検定官がうなずいた。🏁で申告せよ）";
+    else if(currentStep === 5 && reachedBlue) sub = "\n（検定官がメモを取っている…）";
+    msgBoard("🎓 卒業検定中【ノーヒント】\n自分の力で「点検→点火→青い炎→消火」まで行い、🏁で申告せよ。" + sub);
+    boardClass(currentStep === 6 ? 'success' : '');
+    return;
+  }
+
+  if(currentStep === 0){
+    if(gas === 0 && air === 0){ msgBoard("⭕【点検OK】2つのねじは閉まっている！「点検完了」を押せ。"); boardClass('success'); }
+    else { msgBoard("【STEP 1】点火前点検！2つのねじが閉まっているか、回して確認せよ。"); boardClass(''); }
+  }
+  else if(currentStep === 1){ msgBoard("【STEP 2】元栓を開け。"); boardClass(''); }
+  else if(currentStep === 2){
+    if(!matchLit){
+      if(gas > 0){ msgBoard("⚠️【警告】ガスが出ている！マッチの火が先だ！すぐガスを閉じろ！"); boardClass('alert'); }
+      else { msgBoard("【STEP 3】マッチに火をつけよ。（ガスを開くより先！）"); boardClass(''); }
+    } else {
+      msgBoard("【STEP 4】マッチの火を筒の先に近づけながら、ガス調節ねじを少しずつ開いて点火せよ。"); boardClass('');
+    }
+  }
+  else if(currentStep === 3){
+    if(fs === "none"){ msgBoard("⚠️ 火が消えてしまった…。もう一度マッチからやり直し！"); boardClass('warning'); currentStep = 2; }
+    else if(!gasInRange()){ msgBoard("【STEP 5】ガス調節ねじで炎の大きさを調節せよ。（適正：ゲージ40〜80%＝約10cm）"); boardClass(''); }
+    else { msgBoard("⭕【大きさOK】次は空気調節ねじ（上）を少しずつ開いて、青い炎にせよ！"); boardClass('success'); }
+  }
+  else if(currentStep === 4){
+    if(fs === "blue" && gasInRange()){ msgBoard("⭕【完璧】美しい青い炎だ！「🏁 操作試験 終了」を押して認定を受けよ！"); boardClass('success'); }
+    else if(fs === "orange"){ msgBoard("⚠️ 炎がオレンジ色に戻った。空気調節ねじで青に調整し直せ。"); boardClass('warning'); }
+    else if(fs === "none"){ msgBoard("⚠️ 火が消えてしまった…。もう一度マッチからやり直し！"); boardClass('warning'); currentStep = 2; }
+    else { msgBoard("⚠️ 炎の大きさが変わった。ガス調節ねじで40〜80%に調整し直せ。"); boardClass('warning'); }
+  }
+  else if(currentStep === 5){
+    if(fs !== "none"){
+      if(air > 0){ msgBoard("⭕青い炎で観察完了！【消火】は逆の順番。まず空気調節ねじ（上）を閉じよ。"); boardClass('success'); }
+      else { msgBoard("【消火 2/3】次にガス調節ねじ（下）を閉じて火を消せ。"); boardClass(''); }
+    } else {
+      msgBoard("【消火 3/3】最後に元栓を閉じよ。"); boardClass('');
+    }
+  }
+  else if(currentStep === 6){
+    msgBoard("⭕【消火完了】お見事！「🏁 操作試験 終了」を押して認定を受けよ！"); boardClass('success');
+  }
+}
+
+function gameOver(txt){
+  isGameOver = true;
+  pauseTimer();
+  if(incidentTimer){ clearTimeout(incidentTimer); incidentTimer = null; }
+  msgBoard(txt + "\n" + kyokanSay(KYOKAN.fail)); boardClass('alert');
+  document.querySelectorAll('.op-btn').forEach(b => b.disabled = true);
+  const judgeBtn = document.getElementById('btn-judge');
+  judgeBtn.innerText = "トップへ戻る";
+  judgeBtn.disabled = false;
+  judgeBtn.className = "op-btn danger";
+  judgeBtn.setAttribute("onclick", "location.reload()");
+  const va = document.getElementById('view-area');
+  va.style.borderColor = "#d32f2f";
+  va.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:300,iterations:2});
+}
+
+function judge(){
+  if(isGameOver) return;
+  if(currentMode === 1){
+    if(!reachedBlue || flameState() !== "blue" || !gasInRange()){
+      let advice = "❌ まだ認定できません。";
+      if(flameState() === "none") advice += " 火がついていません。";
+      else if(flameState() === "orange") advice += " 炎がオレンジ色です。空気調節ねじで青い炎に！";
+      else if(!gasInRange()) advice += " 炎の大きさが不適正です。ガス調節ねじで40〜80%に！";
+      alert(advice); return;
+    }
+    stamp('ginou1');
+    showLicense("bronze");
+  } else if(currentMode === 2){
+    if(currentStep !== 6 || motosen || gas > 0 || air > 0 || flameState() !== "none"){
+      alert("❌ 不合格！点火→青い炎→消火（空気→ガス→元栓）まで、すべて完了していません！"); return; }
+    pauseTimer();
+    const timeUsed = 180 - timeLeft;
+    stamp('ginou2');
+    showLicense(timeUsed <= 60 ? "gold" : "silver", timeUsed);
+  } else { // 卒検
+    if(currentStep !== 6 || motosen || gas > 0 || air > 0 || flameState() !== "none"){
+      alert("❌ まだ完了していない！点火→青い炎→消火（最後は元栓まで）だ！"); return; }
+    if(!incidentDone){ if(incidentTimer){ clearTimeout(incidentTimer); incidentTimer = null; } }
+    pauseTimer();
+    const timeUsed = 180 - timeLeft;
+    stamp('sotsu');
+    showGradLicense(timeUsed);
+  }
+}
+
+function showLicense(rank, timeUsed){
+  showScreen('license-screen');
+  createConfetti();
+  document.getElementById('license-card').classList.remove('hidden');
+  document.getElementById('grad-license').classList.add('hidden');
+  document.getElementById('print-btn').classList.add('hidden');
+  const kk = document.getElementById('license-kyokan');
+  kk.classList.remove('hidden'); kk.innerText = kyokanSay(KYOKAN.pass);
+  const card = document.getElementById('license-card');
+  const rankEl = document.getElementById('license-rank');
+  const crown = document.getElementById('crown-icon');
+  const timeWrap = document.getElementById('license-time-wrap');
+  document.getElementById('license-name').innerText = localStorage.getItem('gasLicenseName') || "未来の科学者";
+  if(rank === "bronze"){
+    rankEl.innerText = "ブロンズ認定"; rankEl.style.color = "#a0a0a0";
+    card.className = "license-card card-bronze"; crown.innerText = "🥉";
+    timeWrap.style.display = "none";
+  } else {
+    document.getElementById('license-time').innerText = timeUsed;
+    timeWrap.style.display = "block";
+    if(rank === "gold"){
+      rankEl.innerText = "特級 ゴールド認定"; rankEl.style.color = "#fbc02d";
+      card.className = "license-card card-gold"; crown.innerText = "👑";
+    } else {
+      rankEl.innerText = "シルバー認定"; rankEl.style.color = "#9e9e9e";
+      card.className = "license-card card-silver"; crown.innerText = "🥈";
+    }
+  }
+}
+function showGradLicense(timeUsed){
+  showScreen('license-screen');
+  createConfetti();
+  document.getElementById('license-h2').innerText = "🎓 卒業検定 合格！ 🎓";
+  document.getElementById('license-card').classList.add('hidden');
+  document.getElementById('grad-license').classList.remove('hidden');
+  document.getElementById('print-btn').classList.remove('hidden');
+  const kk = document.getElementById('license-kyokan');
+  kk.classList.remove('hidden');
+  kk.innerText = "👹火野教官「…卒業だ。だがな、免許は始まりに過ぎん。本物の火の前では、今日の緊張を忘れるな。」";
+  const d = new Date();
+  document.getElementById('grad-name').innerText = localStorage.getItem('gasLicenseName') || "未来の科学者";
+  document.getElementById('grad-date').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  document.getElementById('grad-no').innerText = "第" + d.getFullYear() + "-" + String(Math.floor(1000 + Math.random()*9000)) + "号";
+  document.getElementById('grad-time').innerText = timeUsed;
+}
+function editName(){
+  const n = prompt("免許証に入れる名前は？", localStorage.getItem('gasLicenseName') || "");
+  if(n !== null && n.trim()){
+    localStorage.setItem('gasLicenseName', n.trim());
+    document.getElementById('license-name').innerText = n.trim();
+    document.getElementById('grad-name').innerText = n.trim();
+  }
+}
+function createConfetti(){
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = "";
+  const emojis = ['🎉', '✨', '🎊', '🏆', '⭐', '🔥'];
+  for(let i = 0; i < 35; i++){
+    let c = document.createElement('div');
+    c.className = 'confetti';
+    c.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    c.style.animationDelay = Math.random() * 2 + 's';
+    container.appendChild(c);
+  }
+}
+
+/* =========================================================
+   学科教習「炎のしくみ」— 粒子シミュレーション
+========================================================= */
+let gk = null; // 学科の状態
+let gkInterval = null;
+function startGakka(){
+  showScreen('gakka-screen');
+  gk = {
+    gas: 0, air: 0, step: 0, phase: 'yosou', chosen: -1,
+    holdSince: null, backfire: 0, backfireStart: null, backfireDone: false,
+    gasParts: [], airParts: [], soot: [], running: true
+  };
+  document.getElementById('gs-gas').value = 0;
+  document.getElementById('gs-air').value = 0;
+  gakkaShowStep();
+  if(gkInterval) clearInterval(gkInterval);
+  gkInterval = setInterval(gakkaTick, 40); // rAF非依存（非表示タブでも凍結しない）
+}
+const GAKKA_STEPS = [
+  { yosou: "Q1. 空気ゼロのまま、ガスだけで燃やすと炎は何色になる？",
+    opts: ["オレンジ色", "青色"], correct: 0,
+    sousa: "▶ ガスのスライダーを 40%以上 まで開いてみよう（空気は0のまま）",
+    check: g => g.gas >= 40 && g.air <= 10,
+    kaisetsu: "⭕オレンジ色！空気が足りないと、ガスの中の炭素（C）が燃え残って熱で光る＝オレンジのすす炎。温度も低い（約700℃）。フラスコを熱すると底が真っ黒になるのはこのせいだ。" },
+  { yosou: "Q2. ここに空気を混ぜていくと、炎はどうなる？",
+    opts: ["青くなる", "火が消える"], correct: 0,
+    sousa: "▶ 空気のスライダーを 40〜60% まで開いてみよう",
+    check: g => g.gas >= 30 && g.air >= 40 && g.air <= 70,
+    kaisetsu: "⭕青くなった！筒の中でガスと空気（酸素）がよく混ざると、燃え残りゼロの完全燃焼＝青い炎。温度は約1500℃まで上がる。だから実験は青い炎でやるんだ。" },
+  { yosou: "Q3. じゃあ、空気をもっともっと入れ続けたら？",
+    opts: ["もっと強い炎になる", "炎が筒の中に吸い込まれる"], correct: 1,
+    sousa: "▶ 空気のスライダーを 90%以上 まで開いてみよう（画面から目を離すな）",
+    check: g => g.backfireDone,
+    kaisetsu: "❗炎が筒の中に吸い込まれた＝これが「逆火（ぎゃっか）」。空気が多すぎると、炎の燃え広がる速さがガスの吹き出す速さに勝って、筒の内部で燃え始める。本物なら大事故。だから空気の入れすぎは一発免停なんだ。" }
+];
+function gakkaShowStep(){
+  const s = GAKKA_STEPS[gk.step];
+  const qbox = document.getElementById('gakka-qbox');
+  const yosou = document.getElementById('gakka-yosou');
+  const next = document.getElementById('gakka-next');
+  next.classList.add('hidden');
+  if(gk.phase === 'yosou'){
+    qbox.innerHTML = "🤔 <strong>予想しよう</strong>　" + s.yosou;
+    document.getElementById('gakka-y0').innerText = s.opts[0];
+    document.getElementById('gakka-y1').innerText = s.opts[1];
+    yosou.classList.remove('hidden');
+  } else if(gk.phase === 'sousa'){
+    yosou.classList.add('hidden');
+    qbox.innerHTML = "🧪 <strong>確かめよう</strong>　" + s.sousa;
+  } else { // kaisetsu
+    yosou.classList.add('hidden');
+    const hit = (gk.chosen === s.correct) ? "予想どおり！" : "予想と違った？それこそが実験だ。";
+    qbox.innerHTML = "💡 <strong>" + hit + "</strong><br>" + s.kaisetsu;
+    next.classList.remove('hidden');
+    next.innerText = (gk.step >= GAKKA_STEPS.length - 1) ? "🎓 学科教習を修了する" : "つぎへ ▶";
+  }
+}
+function gakkaYosou(idx){
+  gk.chosen = idx;
+  gk.phase = 'sousa';
+  gk.holdFrames = 0;
+  gakkaShowStep();
+}
+function gakkaNext(){
+  if(gk.step >= GAKKA_STEPS.length - 1){
+    stamp('gakka');
+    alert("🎓 学科教習 修了！\n👹火野教官「『なぜ』を知った者だけが、火を支配できる。次は学科試験だ。」\n（このあとは自由実験モード。好きにいじってよし）");
+    gk.phase = 'free';
+    document.getElementById('gakka-qbox').innerHTML = "🔬 <strong>自由実験モード</strong>　スライダーを自由に動かして、オレンジ・青・逆火を再現してみよう。（逆火は何度でも安全に見られる。ここはシミュレーターだからな）";
+    document.getElementById('gakka-next').classList.add('hidden');
+    return;
+  }
+  gk.step++;
+  gk.phase = 'yosou';
+  gk.backfireDone = false; gk.backfireStart = null; gk.holdSince = null;
+  gakkaShowStep();
+}
+function gakkaInput(){
+  gk.gas = parseInt(document.getElementById('gs-gas').value);
+  gk.air = parseInt(document.getElementById('gs-air').value);
+  document.getElementById('gs-gas-v').innerText = gk.gas;
+  document.getElementById('gs-air-v').innerText = gk.air;
+}
+function gakkaTick(){
+  if(!gk || !gk.running) return;
+  const c = document.getElementById('gakka-canvas');
+  if(!c){ return; }
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // 筒（断面図）
+  const tubeL = 140, tubeR = 200, tubeTop = 60, tubeBot = 270;
+  ctx.fillStyle = "#37474f";
+  ctx.fillRect(tubeL - 14, tubeTop, 14, tubeBot - tubeTop);
+  ctx.fillRect(tubeR, tubeTop, 14, tubeBot - tubeTop);
+  // 空気穴（側面スリット）
+  ctx.fillStyle = "#263238";
+  ctx.fillRect(tubeL - 14, 215, 14, 26);
+  ctx.fillRect(tubeR, 215, 14, 26);
+  ctx.strokeStyle = "#607d8b"; ctx.lineWidth = 1;
+  ctx.strokeRect(tubeL - 14, 215, 14, 26);
+  ctx.strokeRect(tubeR, 215, 14, 26);
+  // ガス噴出口
+  ctx.fillStyle = "#546e7a";
+  ctx.fillRect(160, tubeBot - 8, 20, 8);
+  // ラベル
+  ctx.fillStyle = "#b0bec5"; ctx.font = "bold 11px 'BIZ UDGothic'";
+  ctx.fillText("空気穴", tubeL - 60, 232);
+  ctx.fillText("空気穴", tubeR + 18, 232);
+  ctx.fillText("ガス", 158, 292);
+  ctx.fillText("筒の断面", 8, 20);
+
+  const mixRatio = gk.gas > 5 ? gk.air / Math.max(gk.gas, 1) : 0;
+  const burning = gk.gas > 5;
+
+  // ★逆火判定（実時間ベース）
+  if(burning && gk.air >= 88 && !gk.backfireStart && gk.phase !== 'yosou'){
+    gk.backfireStart = Date.now();
+  }
+  gk.backfire = gk.backfireStart ? Math.min((Date.now() - gk.backfireStart) / 26, 95) : 0;
+
+  // 粒子スポーン
+  if(burning && gk.gasParts.length < gk.gas * 0.45){
+    gk.gasParts.push({ x: 165 + Math.random() * 10, y: tubeBot - 10, vx: (Math.random() - .5) * .5, vy: -(1.1 + Math.random() * .7) });
+  }
+  if(gk.air > 5 && gk.airParts.length < gk.air * 0.45){
+    const left = Math.random() < .5;
+    gk.airParts.push({ x: left ? tubeL - 6 : tubeR + 6, y: 218 + Math.random() * 20, vx: left ? (0.9 + Math.random()) : -(0.9 + Math.random()), vy: -0.3 });
+  }
+  // 粒子更新・描画
+  const flameBase = gk.backfire > 0 ? tubeTop + gk.backfire * 2 : tubeTop + 4;
+  const step = p => {
+    p.x += p.vx; p.y += p.vy;
+    if(p.x > tubeL && p.x < tubeR){ p.vy -= 0.06; p.vx *= 0.95; } // 筒内は上昇加速
+    if(p.x < tubeL + 3 && p.y < 215){ p.x = tubeL + 3; p.vx = Math.abs(p.vx) * .5; }
+    if(p.x > tubeR - 3 && p.y < 215){ p.x = tubeR - 3; p.vx = -Math.abs(p.vx) * .5; }
+  };
+  ctx.globalAlpha = 0.9;
+  gk.gasParts = gk.gasParts.filter(p => { step(p); return p.y > flameBase; });
+  ctx.fillStyle = "#ffab40";
+  gk.gasParts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); });
+  gk.airParts = gk.airParts.filter(p => { step(p); return p.y > flameBase && p.x > tubeL - 14 && p.x < tubeR + 14; });
+  ctx.fillStyle = "#4fc3f7";
+  gk.airParts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); });
+  ctx.globalAlpha = 1;
+
+  // 炎の描画
+  const mixEl = document.getElementById('gm-mix');
+  const tempEl = document.getElementById('gm-temp');
+  if(gk.backfire > 0){
+    // 逆火アニメ：炎が筒の中を降りていく
+    const fy = tubeTop + gk.backfire * 2;
+    const grd = ctx.createRadialGradient(170, Math.min(fy, tubeBot - 20), 4, 170, Math.min(fy, tubeBot - 20), 34);
+    grd.addColorStop(0, "#fff59d"); grd.addColorStop(.5, "#ff7043"); grd.addColorStop(1, "rgba(183,28,28,0)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(tubeL, tubeTop, tubeR - tubeL, tubeBot - tubeTop);
+    ctx.fillStyle = "#ff5252"; ctx.font = "bold 16px 'BIZ UDGothic'";
+    ctx.fillText("⚠ 逆火！筒の中で燃えている！", 60, 44);
+    mixEl.innerText = "空気過多！"; tempEl.innerText = "危険";
+    if(gk.backfire >= 90 && !gk.backfireDone){
+      gk.backfireDone = true;
+      setTimeout(() => {
+        gk.backfireStart = null; gk.backfire = 0;
+        document.getElementById('gs-air').value = 0; document.getElementById('gs-gas').value = 0;
+        gakkaInput();
+        if(gk.phase === 'sousa' && GAKKA_STEPS[gk.step].check(gk)){ gk.phase = 'kaisetsu'; gakkaShowStep(); }
+      }, 900);
+    }
+  } else if(burning){
+    const isBlue = mixRatio >= 0.35 && gk.air >= 25;
+    const h = 30 + gk.gas * 0.7;
+    const grd = ctx.createLinearGradient(170, tubeTop, 170, tubeTop - h);
+    if(isBlue){ grd.addColorStop(0, "#e3f2fd"); grd.addColorStop(.4, "#42a5f5"); grd.addColorStop(1, "rgba(21,101,192,0)"); }
+    else { grd.addColorStop(0, "#fff59d"); grd.addColorStop(.4, "#ffa726"); grd.addColorStop(1, "rgba(230,81,0,0)"); }
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    const flick = Math.sin(Date.now() / 90) * 3;
+    ctx.moveTo(150, tubeTop + 2);
+    ctx.quadraticCurveTo(148 + flick, tubeTop - h * .5, 170 + flick, tubeTop - h);
+    ctx.quadraticCurveTo(192 + flick, tubeTop - h * .5, 190, tubeTop + 2);
+    ctx.fill();
+    // すす
+    if(!isBlue){
+      if(Math.random() < .3) gk.soot.push({ x: 155 + Math.random() * 30, y: tubeTop - h, vy: -(0.5 + Math.random() * 0.5) });
+      ctx.fillStyle = "#212121";
+      gk.soot = gk.soot.filter(s => { s.y += s.vy; return s.y > 0; });
+      gk.soot.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, 2, 0, 7); ctx.fill(); });
+      mixEl.innerText = "混ざり不足"; tempEl.innerText = "約700℃";
+    } else {
+      gk.soot = [];
+      mixEl.innerText = "よく混ざった！"; tempEl.innerText = "約1500℃";
+    }
+  } else {
+    mixEl.innerText = "—"; tempEl.innerText = "—";
+    gk.soot = [];
+  }
+
+  // 操作条件チェック（逆火ステップ以外・実時間1秒キープで達成）
+  if(gk.phase === 'sousa' && gk.step < 2){
+    if(GAKKA_STEPS[gk.step].check(gk)){
+      if(!gk.holdSince) gk.holdSince = Date.now();
+      else if(Date.now() - gk.holdSince > 1000){ gk.holdSince = null; gk.phase = 'kaisetsu'; gakkaShowStep(); }
+    } else gk.holdSince = null;
+  }
+}
+
+/* =========================================================
+   路上教習「理科室は事件だらけ」＋ 卒検の抜き打ち事件
+========================================================= */
+const INCIDENTS = [
+  { no: 1, title: "夕焼けの炎", text: "観察中、炎が急にオレンジ色になり、フラスコの底にすすが付き始めた！",
+    choices: [{t:"空気調節ねじを少し開く", ok:true},{t:"ガス調節ねじを全開にする", ok:false},{t:"水をかけて消す", ok:false}],
+    expl: "オレンジ＝空気不足のサイン。空気調節ねじを開いて青い炎に戻す。あわてて水をかけるのは厳禁。" },
+  { no: 2, title: "吸い込まれた炎", text: "「ゴーッ」と音がして、炎がバーナーの筒の中に入り込んで燃えている！（逆火）",
+    choices: [{t:"すぐに元栓を閉じてガスを断つ", ok:true},{t:"空気調節ねじをもっと開く", ok:false},{t:"息を吹きかけて消す", ok:false}],
+    expl: "逆火は緊急事態。ふだんの消火順序より「ガスを断つ」が最優先。冷えてから最初からやり直す。" },
+  { no: 3, title: "見えない敵", text: "火はついていないのに、理科室にガスのにおいがただよっている…！",
+    choices: [{t:"窓を開けて換気し、元栓を閉めて先生を呼ぶ", ok:true},{t:"マッチをつけて漏れ場所を探す", ok:false},{t:"においが消えるまで様子を見る", ok:false}],
+    expl: "ガス漏れの疑いがあるとき、火は絶対NG。換気→元栓→先生。この順で動け。" },
+  { no: 4, title: "指先3センチ", text: "点火に手間取って、マッチの火が指のすぐ近くまで燃えてきた！",
+    choices: [{t:"燃えさし入れに入れて、新しいマッチでやり直す", ok:true},{t:"熱いのを我慢してそのまま点火を続ける", ok:false},{t:"火のついたまま床に捨てる", ok:false}],
+    expl: "マッチは使い捨てでいい。ケチって指をやけどする方がずっと高くつく。燃えさし入れ（水入り容器）へ。" },
+  { no: 5, title: "隣の悲鳴", text: "隣の班から悲鳴が聞こえた！自分の班のバーナーは今、点火中だ。",
+    choices: [{t:"自分のバーナーの火を消してから状況を確認する", ok:true},{t:"火をつけたまま、すぐ見に行く", ok:false},{t:"バーナーを置いて廊下の先生を呼びに走る", ok:false}],
+    expl: "火をつけたまま持ち場を離れるのが一番危ない。まず自分の火の始末。事故を増やすな。" },
+  { no: 6, title: "燃えすぎた炎", text: "炎がどんどん大きくなって、30cmくらいまで伸びてしまった！",
+    choices: [{t:"ガス調節ねじを閉じる方向に回して調整", ok:true},{t:"空気調節ねじを閉じる", ok:false},{t:"怖いので机から離れる", ok:false}],
+    expl: "炎の大きさ＝ガスの量。ガス調節ねじ（下）で落ち着いて調整。逃げたら誰も止められない。" },
+  { no: 7, title: "消えたはずの音", text: "風で火が消えた。でも「シュー」という音がまだ続いている…！",
+    choices: [{t:"すぐガス調節ねじを閉じ、換気してから点火し直す", ok:true},{t:"すぐマッチで再点火する", ok:false},{t:"そのまま様子を見る", ok:false}],
+    expl: "火が消えても生ガスは出続けている。そこに再点火すると溜まったガスに引火（ボッ！）。まず止める→換気→やり直し。" },
+  { no: 8, title: "熱の残り香", text: "実験が終わった。バーナーの筒がまだ熱そうだ。",
+    choices: [{t:"冷めるまで待ってから片付ける", ok:true},{t:"水をかけて冷やす", ok:false},{t:"濡れぞうきんでつかんで運ぶ", ok:false}],
+    expl: "金属は見た目では熱さがわからない。急冷は変形や破損のもと。「冷めるまで待つ」も立派な技能だ。" }
+];
+
+let rojoIdx = 0, rojoMistakes = 0, jTimer = null, jAnswered = false;
+function startRojo(){
+  showScreen('rojo-screen');
+  rojoIdx = 0; rojoMistakes = 0;
+  renderJikenbo();
+  showJiken();
+}
+function renderJikenbo(){
+  const box = document.getElementById('jikenbo');
+  box.innerHTML = "";
+  INCIDENTS.forEach((inc, i) => {
+    const d = document.createElement('div');
+    d.className = 'jb' + (i < rojoIdx ? ' get' : '');
+    d.innerHTML = `<span class="n">${i < rojoIdx ? '📕' : '❓'}</span>No.${inc.no}<br>${i < rojoIdx ? inc.title : '？？？'}`;
+    box.appendChild(d);
+  });
+}
+function showJiken(){
+  if(rojoIdx >= INCIDENTS.length){ endRojo(); return; }
+  const inc = INCIDENTS[rojoIdx];
+  jAnswered = false;
+  document.getElementById('jiken-flash').classList.remove('hidden');
+  document.getElementById('jiken-kaisetsu').classList.add('hidden');
+  document.getElementById('jiken-next').classList.add('hidden');
+  document.getElementById('jiken-text').innerText = `事件No.${inc.no}　${inc.text}`;
+  const box = document.getElementById('jiken-choices');
+  box.innerHTML = "";
+  [...inc.choices].sort(() => Math.random() - .5).forEach(ch => {
+    const b = document.createElement('button');
+    b.innerText = ch.t;
+    b.onclick = () => answerJiken(b, ch, inc);
+    box.appendChild(b);
+  });
+  // 5秒タイマー
+  const t = document.getElementById('jiken-timer');
+  t.classList.remove('hidden'); t.classList.remove('run');
+  void t.offsetWidth;
+  t.querySelector('i').style.animationDuration = "5s";
+  t.classList.add('run');
+  clearTimeout(jTimer);
+  jTimer = setTimeout(() => { if(!jAnswered) answerJiken(null, {ok:false, t:"（時間切れ）"}, inc); }, 5000);
+}
+function answerJiken(btn, ch, inc){
+  if(jAnswered) return;
+  jAnswered = true;
+  clearTimeout(jTimer);
+  document.getElementById('jiken-timer').classList.remove('run');
+  const box = document.getElementById('jiken-choices');
+  [...box.children].forEach(b => {
+    const isRight = inc.choices.find(c => c.t === b.innerText)?.ok;
+    if(isRight) b.classList.add('right');
+    b.disabled = true;
+  });
+  const k = document.getElementById('jiken-kaisetsu');
+  k.classList.remove('hidden');
+  if(ch.ok){
+    k.innerHTML = "⭕ <strong>正解！</strong>　" + inc.expl + "<br>" + kyokanSay(KYOKAN.inc_ok);
+    document.getElementById('jiken-next').classList.remove('hidden');
+    document.getElementById('jiken-next').innerText = (rojoIdx >= INCIDENTS.length - 1) ? "🎓 路上教習を修了する ▶" : "つぎの事件へ ▶";
+  } else {
+    if(btn) btn.classList.add('wrong');
+    rojoMistakes++;
+    k.innerHTML = "❌ <strong>" + (ch.t === "（時間切れ）" ? "時間切れ！" : "その行動は危険！") + "</strong>　" + inc.expl + "<br>👹火野教官「もう一度だ。今度は3秒で決めろ。」";
+    document.getElementById('jiken-next').classList.remove('hidden');
+    document.getElementById('jiken-next').innerText = "同じ事件にもう一度挑む ▶";
+    rojoIdx--; // 同じ事件をやり直し
+  }
+}
+function nextJiken(){
+  rojoIdx++;
+  renderJikenbo();
+  showJiken();
+}
+function endRojo(){
+  stamp('rojo');
+  document.getElementById('jiken-flash').classList.add('hidden');
+  document.getElementById('jiken-timer').classList.add('hidden');
+  document.getElementById('jiken-text').innerText = "🎉 全8事件、解決！";
+  document.getElementById('jiken-choices').innerHTML = "";
+  document.getElementById('jiken-kaisetsu').classList.add('hidden');
+  document.getElementById('jiken-next').classList.add('hidden');
+  document.getElementById('rojo-quit').classList.add('hidden');
+  renderJikenbo();
+  const r = document.getElementById('rojo-result');
+  r.classList.remove('hidden');
+  document.getElementById('rojo-result-text').innerHTML =
+    (rojoMistakes === 0 ? "⭕ ノーミスで路上教習 修了！" : `路上教習 修了！（やり直し ${rojoMistakes}回）`) +
+    "<br>👹火野教官「事件は、必ず君の授業中にも起こる。今日の判断を体に刻め。」";
+}
+
+/* ---------- 卒検の抜き打ち事件 ---------- */
+function scheduleIncident(){
+  incidentDone = false;
+  const fire = () => {
+    if(isGameOver || incidentDone || currentStep < 3){ // 点火後まで待つ
+      if(!isGameOver && !incidentDone) incidentTimer = setTimeout(fire, 2000);
+      return;
+    }
+    fireIncident();
+  };
+  incidentTimer = setTimeout(fire, 4000 + Math.random() * 5000);
+}
+function fireIncident(){
+  if(isGameOver || incidentDone) return;
+  incidentDone = true;
+  pauseTimer();
+  const inc = INCIDENTS[Math.floor(Math.random() * INCIDENTS.length)];
+  const ov = document.getElementById('incident-ov');
+  ov.classList.add('on');
+  document.getElementById('inc-text').innerText = `事件No.${inc.no}「${inc.title}」　${inc.text}`;
+  const box = document.getElementById('inc-choices');
+  box.innerHTML = "";
+  let answered = false;
+  const t = document.getElementById('inc-timer');
+  t.classList.remove('run'); void t.offsetWidth;
+  t.querySelector('i').style.animationDuration = "5s";
+  t.classList.add('run');
+  const to = setTimeout(() => { if(!answered) finish(false, null); }, 5000);
+  const finish = (ok, btn) => {
+    if(answered) return; answered = true;
+    clearTimeout(to);
+    [...box.children].forEach(b => {
+      const isRight = inc.choices.find(c => c.t === b.innerText)?.ok;
+      if(isRight) b.classList.add('right');
+      b.disabled = true;
+    });
+    if(btn && !ok) btn.classList.add('wrong');
+    setTimeout(() => {
+      ov.classList.remove('on');
+      if(ok){
+        msgBoard("⭕事件対応 成功！検定続行。" + "\n" + kyokanSay(KYOKAN.inc_ok)); boardClass('success');
+        startTimer(); // 再開
+        setTimeout(updateGameState, 2500);
+      } else {
+        gameOver("❌【検定中止】事件への対応を誤った！　正解：「" + inc.choices.find(c => c.ok).t + "」。" + inc.expl);
+      }
+    }, ok ? 700 : 1600);
+  };
+  [...inc.choices].sort(() => Math.random() - .5).forEach(ch => {
+    const b = document.createElement('button');
+    b.innerText = ch.t;
+    b.onclick = () => finish(ch.ok, b);
+    box.appendChild(b);
+  });
+}
+
+/* =========================================================
+   学科試験（パーツ名称）— 間違えても進む・全問正解で合格
+========================================================= */
+const PARTS_QUIZ = [
+  { q: "光っている部品の名前は？", a: "空気調節ねじ", target: "airRing", opts: ["空気調節ねじ", "ガス調節ねじ", "元栓", "マッチ"] },
+  { q: "光っている部品の名前は？", a: "ガス調節ねじ", target: "gasRing", opts: ["ガス調節ねじ", "空気調節ねじ", "元栓", "マッチ"] },
+  { q: "光っている部品（ガスの大もと）の名前は？", a: "元栓", target: "motosenG", opts: ["元栓", "空気調節ねじ", "ガス調節ねじ", "筒"] },
+  { q: "青い炎にするために回すねじは？", a: "空気調節ねじ", target: null, opts: ["空気調節ねじ", "ガス調節ねじ", "元栓", "マッチ"] },
+  { q: "炎の大きさ（ガスの量）を変えるねじは？", a: "ガス調節ねじ", target: null, opts: ["ガス調節ねじ", "空気調節ねじ", "元栓", "コック"] }
+];
+/* 手順ならべかえ（教科書 確かめ問題準拠） */
+const ORDER_QUIZ = [
+  { title: "【点火】正しい順に、上からタップせよ", steps: [
+    "2つのねじが閉まっているか確認する",
+    "元栓を開く",
+    "マッチに火をつけてから、ガス調節ねじを開いて点火",
+    "ガス調節ねじで炎の大きさを調節する",
+    "空気調節ねじを開いて青い炎にする" ] },
+  { title: "【消火】正しい順に、上からタップせよ", steps: [
+    "空気調節ねじを閉じる",
+    "ガス調節ねじを閉じる",
+    "元栓を閉じる" ] }
+];
+let pQi = 0, pMistakes = 0, pAnswered = false, oIdx = 0, oPos = 0;
+function startParts(){
+  pQi = 0; pMistakes = 0; oIdx = 0; oPos = 0;
+  showScreen('parts-screen');
+  document.getElementById('parts-result').classList.add('hidden');
+  document.getElementById('parts-choices').style.display = "grid";
+  document.getElementById('parts-choices').style.gridTemplateColumns = "1fr 1fr";
+  mountBurner('parts-mount');
+  document.querySelectorAll('#parts-mount .plabel').forEach(e => e.style.opacity = 0);
+  nextParts();
+}
+function highlightPart(id){
+  const hl = document.querySelector('#parts-mount #hl');
+  if(!hl) return;
+  const pos = { airRing: [180, 118, 42], gasRing: [180, 156, 46], motosenG: [296, 290, 30] }[id];
+  hl.innerHTML = pos ? `<circle class="hlring" cx="${pos[0]}" cy="${pos[1]}" r="${pos[2]}"/>` : "";
+}
+function nextParts(){
+  if(pQi >= PARTS_QUIZ.length){ startOrder(); return; }
+  const item = PARTS_QUIZ[pQi];
+  highlightPart(item.target);
+  document.getElementById('parts-qbox').innerText = `第${pQi + 1}問 / ${PARTS_QUIZ.length}　${item.q}`;
+  const c = document.getElementById('parts-choices');
+  c.innerHTML = "";
+  pAnswered = false;
+  [...item.opts].sort(() => Math.random() - 0.5).forEach(o => {
+    const b = document.createElement('button');
+    b.innerText = o;
+    b.onclick = () => {
+      if(pAnswered) return; pAnswered = true;
+      if(o === item.a){
+        b.classList.add('right');
+        setTimeout(() => { pQi++; nextParts(); }, 600);
+      } else {
+        b.classList.add('wrong'); pMistakes++;
+        [...c.children].forEach(x => { if(x.innerText === item.a) x.classList.add('right'); });
+        setTimeout(() => { pQi++; nextParts(); }, 1500);
+      }
+    };
+    c.appendChild(b);
+  });
+}
+/* 手順ならべかえ：正しい順にタップ。間違えても進めるが、全問正解のみ合格 */
+function startOrder(){
+  highlightPart(null);
+  document.querySelectorAll('#parts-mount .plabel').forEach(e => e.style.opacity = 1); // 手順問題はラベル見てOK
+  if(oIdx >= ORDER_QUIZ.length){ endParts(); return; }
+  const q = ORDER_QUIZ[oIdx];
+  oPos = 0;
+  const marks = ["①","②","③","④","⑤"];
+  document.getElementById('parts-qbox').innerText = `手順テスト ${oIdx + 1} / ${ORDER_QUIZ.length}　${q.title}`;
+  const c = document.getElementById('parts-choices');
+  c.style.gridTemplateColumns = "1fr"; // 縦1列
+  c.innerHTML = "";
+  q.steps.map((t, i) => ({t, i})).sort(() => Math.random() - .5).forEach(item => {
+    const b = document.createElement('button');
+    b.innerText = item.t;
+    b.style.textAlign = "left";
+    b.onclick = () => {
+      if(b.disabled) return;
+      if(item.i === oPos){
+        b.classList.add('right');
+        b.innerText = marks[oPos] + " " + item.t;
+        b.disabled = true;
+        oPos++;
+        if(oPos >= q.steps.length){
+          setTimeout(() => { oIdx++; startOrder(); }, 800);
+        }
+      } else {
+        pMistakes++;
+        b.classList.add('wrong');
+        setTimeout(() => b.classList.remove('wrong'), 500); // 赤フラッシュして続行
+      }
+    };
+    c.appendChild(b);
+  });
+}
+
+function endParts(){
+  highlightPart(null);
+  document.querySelectorAll('#parts-mount .plabel').forEach(e => e.style.opacity = 1);
+  document.getElementById('parts-choices').style.display = "none";
+  const r = document.getElementById('parts-result');
+  const t = document.getElementById('parts-result-text');
+  if(pMistakes === 0){
+    stamp('gakkaShiken');
+    document.getElementById('parts-qbox').innerText = "🎉 学科試験 合格！";
+    t.innerHTML = "⭕ <span style='color:#2e7d32;'>全問正解！学科試験 合格！</span><br>👹火野教官「名前も知らん道具を、握る資格はないからな。」";
+  } else {
+    document.getElementById('parts-qbox').innerText = "📝 採点結果";
+    t.innerHTML = `❌ <span style='color:#d32f2f;'>${pMistakes}問 まちがい。</span><br>全問正解で合格だ。もう一度挑戦！`;
+  }
+  r.classList.remove('hidden');
+}
+
+/* ---------- 起動 ---------- */
+decorateMenu();
+</script>
+</body>
+</html>
